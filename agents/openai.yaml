@@ -1,0 +1,4 @@
+interface:
+  display_name: "文献翻译"
+  short_description: "将学术论文源码翻译为地道中文并保持 LaTeX 可编译"
+  default_prompt: "Use $literature-translation to translate this paper into polished Chinese while preserving LaTeX structure and key English technical terms."
