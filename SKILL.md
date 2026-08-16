@@ -31,6 +31,7 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
    - Inspect local build files first: `latexmkrc`, `Makefile`, CI configuration, class files, and author notes.
    - Follow [references/latex-build-and-qa.md](references/latex-build-and-qa.md) for engine selection, bibliography passes, log checks, and safe Chinese support.
    - Prefer `latexmk` when available. Use `xelatex` or `lualatex` for Chinese unless the authoritative template requires another engine.
+   - For a portable Chinese PDF, use an explicitly selected project-local Unicode OpenType/TrueType CJK font when the default CJK font path produces legacy CID fonts. Do not accept viewer-dependent font fallback.
    - Make the smallest compatibility change possible; do not replace an official venue template merely to obtain Chinese output.
 
 5. Audit structural fidelity.
@@ -39,7 +40,9 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
    - Treat the audit as a guardrail, not a semantic proof. Manually compare claims, negation, conditions, quantities, units, and limitations.
 
 6. Render and visually verify.
-   - Render the final PDF and inspect at minimum the title/abstract, a dense equation page, a figure/table-heavy page, the bibliography, and appendices when present.
+   - Run `python scripts/check_pdf_fonts.py <final.pdf> --json`. Resolve every unembedded CJK font and every CJK Type 0 font lacking `/ToUnicode` before delivery.
+   - Render the final PDF with two independent engines when Chinese text is present, preferably Poppler and PyMuPDF. A single renderer can hide missing CMaps through local font fallback.
+   - Inspect at minimum the title/abstract, a dense equation page, a figure/table-heavy page, the bibliography, and appendices when present.
    - Check overflow, missing glyphs, broken cross-references, float drift, clipped tables, caption separation, and figures entering the bibliography.
    - If source and target pagination differ, compare by structural anchors rather than page number alone.
 
@@ -55,12 +58,14 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
 - Never drop content because extraction or compilation is difficult; mark unresolved material and continue with traceable placeholders.
 - Never translate identifiers that must remain machine-stable, including `\label`, cite keys, command names, filenames, URLs, dataset splits, and code symbols.
 - Never claim equivalence based only on successful compilation. Compilation, structural audit, semantic review, and visual inspection are separate checks.
+- Never deliver a Chinese PDF that depends on a reader's system font fallback or external Adobe CMap/language packs. Require embedded CJK fonts, `/ToUnicode`, and successful cross-renderer screenshots.
 - Preserve uncertainty. Words such as “may,” “approximately,” “under this assumption,” and negative constructions are meaning-bearing.
 
 ## Bundled resources
 
 - `scripts/project_inventory.py`: read-only LaTeX project inventory and root-file detection.
 - `scripts/audit_translation.py`: read-only source/translation structural comparison with JSON output support.
+- `scripts/check_pdf_fonts.py`: verify embedded fonts and Unicode mappings needed for portable Chinese PDF rendering and extraction.
 - `references/translation-policy.md`: detailed fidelity and PDF-reconstruction rules.
 - `references/latex-build-and-qa.md`: build, log, and visual-QA procedure.
 - `references/terminology.md`: bilingual terminology policy and consistency rules.

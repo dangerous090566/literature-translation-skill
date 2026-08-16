@@ -19,6 +19,7 @@ def load_module(name: str, path: Path):
 
 inventory_module = load_module("project_inventory", ROOT / "scripts" / "project_inventory.py")
 audit_module = load_module("audit_translation", ROOT / "scripts" / "audit_translation.py")
+font_module = load_module("check_pdf_fonts", ROOT / "scripts" / "check_pdf_fonts.py")
 
 
 class ProjectInventoryTests(unittest.TestCase):
@@ -102,6 +103,48 @@ class TranslationAuditTests(unittest.TestCase):
             self.assertIn("missing-reference_targets", codes)
             self.assertIn("missing-citation_keys", codes)
             self.assertIn("missing-bibliography_files", codes)
+
+
+class PdfFontTests(unittest.TestCase):
+    def test_rejects_cjk_font_without_tounicode(self):
+        font = {
+            "/Subtype": "/Type0",
+            "/BaseFont": "/ABCDEF+FandolSong-Regular-Identity-H",
+            "/DescendantFonts": [
+                {
+                    "/BaseFont": "/ABCDEF+FandolSong-Regular",
+                    "/CIDSystemInfo": {"/Ordering": "GB1"},
+                    "/FontDescriptor": {"/FontFile3": object()},
+                }
+            ],
+        }
+
+        result = font_module.analyze_font(font)
+
+        self.assertTrue(result["embedded"])
+        self.assertFalse(result["to_unicode"])
+        self.assertIn("cjk-font-missing-tounicode", result["issues"])
+
+    def test_accepts_embedded_unicode_cjk_font(self):
+        font = {
+            "/Subtype": "/Type0",
+            "/BaseFont": "/ABCDEF+NotoSerifSC-Regular",
+            "/ToUnicode": object(),
+            "/DescendantFonts": [
+                {
+                    "/BaseFont": "/ABCDEF+NotoSerifSC-Regular",
+                    "/CIDSystemInfo": {"/Ordering": "Identity"},
+                    "/FontDescriptor": {"/FontFile2": object()},
+                }
+            ],
+        }
+
+        result = font_module.analyze_font(font)
+
+        self.assertTrue(result["is_cjk"])
+        self.assertTrue(result["embedded"])
+        self.assertTrue(result["to_unicode"])
+        self.assertEqual(result["issues"], [])
 
 
 
