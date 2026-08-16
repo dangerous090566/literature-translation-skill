@@ -1,60 +1,66 @@
 ---
 name: literature-translation
-description: Translate academic literature, especially papers with LaTeX source or PDFs, into polished Chinese while preserving scholarly structure, citations, figures, tables, equations, and compilability. Use when the user asks to parse a paper into LaTeX, translate paper source, make a Chinese version of an English manuscript, align a translation with an original PDF/TEX, or produce a compiled Chinese PDF from academic source files.
+description: Translate academic papers, theses, preprints, and technical reports into polished Chinese from LaTeX or PDF while preserving claims, equations, citations, figures, tables, labels, and compilability. Use when Codex must translate or align academic literature, create a Chinese LaTeX/PDF edition, reconstruct a paper from PDF, or audit an existing translation for structural fidelity, terminology consistency, and build quality. Do not use for inventing new claims or substantively rewriting the source.
 ---
 
 # Literature Translation
 
-## Overview
+Produce a faithful Chinese scholarly artifact, not merely translated prose. Treat the identified source version as authoritative and keep every factual claim, qualifier, number, citation, equation, and structural relationship traceable to it.
 
-Use this skill to produce a faithful, readable Chinese version of academic literature. Prefer translating from the original `.tex` source when available; use PDF extraction only as a fallback or for verification.
+## Core workflow
 
-## Core Workflow
+1. Establish scope and source authority.
+   - Identify the exact paper version, desired output language, deliverables, and whether the result should be Chinese-only or bilingual.
+   - Prefer official or user-provided LaTeX. Use PDF as a visual reference when both exist.
+   - When only a PDF exists, state that the LaTeX is reconstructed and use the PDF workflow in [references/translation-policy.md](references/translation-policy.md).
+   - Do not silently combine different revisions of a paper.
 
-1. Identify the source of truth.
-   - Prefer official LaTeX source from arXiv, publisher supplements, project repositories, or user-provided `.tex`.
-   - If only a PDF is available, extract text and structure carefully, but state that the result is reconstructed rather than source-aligned.
-   - If both PDF and LaTeX exist, use LaTeX as the editing base and use the PDF for visual/semantic verification.
+2. Inventory before editing.
+   - Preserve the source tree and create a separate target such as `main_zh.tex` or a separate output directory.
+   - For a LaTeX project, run `python scripts/project_inventory.py <source>` to identify root files, dependencies, structural anchors, and likely build inputs.
+   - Resolve ambiguous root documents or missing includes before translating. Never infer missing experimental results.
 
-2. Preserve the scholarly artifact.
-   - Keep document structure, section order, labels, citations, equations, figures, tables, algorithms, and appendices aligned with the original.
-   - Do not casually merge, remove, renumber, or reorder figures/tables.
-   - Preserve `\label`, `\ref`, `\cite`, `\bibliography`, mathematical notation, and package-level semantics unless compilation requires a scoped fix.
+3. Translate with protected structure.
+   - Read [references/translation-policy.md](references/translation-policy.md) for fidelity, PDF-only reconstruction, equations, citations, tables, algorithms, and figure rules.
+   - Read [references/terminology.md](references/terminology.md) for terminology-heavy AI, robotics, control, or autonomous-driving papers, or whenever terminology consistency matters.
+   - Translate complete paragraphs and preserve their rhetorical role. Use idiomatic, restrained academic Chinese without strengthening or weakening claims.
+   - Keep LaTeX commands, labels, cite keys, file paths, code, variables, units, model names, dataset names, and metric abbreviations unchanged unless a scoped compatibility fix is required.
+   - Translate headings, prose, captions, table headers, algorithm descriptions, footnotes, and appendices. Translate text embedded inside figures only when explicitly requested and editable source assets are available.
 
-3. Translate into idiomatic Chinese.
-   - Translate paragraph by paragraph, not sentence-fragment by sentence-fragment.
-   - Make Chinese prose natural for a technical reader while preserving the original claims, scope, limitations, and experimental results.
-   - Keep tone academic, precise, and restrained.
-   - Avoid literal English word order when it makes Chinese awkward.
+4. Build using the project-native toolchain.
+   - Inspect local build files first: `latexmkrc`, `Makefile`, CI configuration, class files, and author notes.
+   - Follow [references/latex-build-and-qa.md](references/latex-build-and-qa.md) for engine selection, bibliography passes, log checks, and safe Chinese support.
+   - Prefer `latexmk` when available. Use `xelatex` or `lualatex` for Chinese unless the authoritative template requires another engine.
+   - Make the smallest compatibility change possible; do not replace an official venue template merely to obtain Chinese output.
 
-4. Keep suitable technical terms in English.
-   - Do not force every professional term into Chinese.
-   - Preserve widely used terms such as `backbone`, `benchmark`, `token`, `adapter`, `prompt`, `fine-tuning`, `zero-shot`, `closed-loop`, `open-loop`, `end-to-end`, `agent`, `pipeline`, and model/dataset names when Chinese translation would be less precise.
-   - On first use, optionally write `中文解释（English term）` when it improves readability; afterwards use the shorter dominant form.
-   - Load [references/terminology.md](references/terminology.md) when handling terminology-heavy papers or when the user asks for term consistency.
+5. Audit structural fidelity.
+   - Run `python scripts/audit_translation.py --source <source> --target <target>` on the source and translated root files or project directories.
+   - Resolve every missing label, reference target, citation key, included file, and graphics path. Investigate environment or section-count differences rather than automatically forcing counts to match.
+   - Treat the audit as a guardrail, not a semantic proof. Manually compare claims, negation, conditions, quantities, units, and limitations.
 
-5. Compile and verify.
-   - For LaTeX deliverables, compile with the appropriate engine, usually `xelatex` for Chinese.
-   - Run bibliography and repeated LaTeX passes until references stabilize.
-   - Render or inspect the compiled PDF when layout matters. Check title page, dense figure/table pages, appendix pages, and bibliography pages.
-   - Fix obvious issues such as missing fonts, undefined references, figure/table floats entering the bibliography, broken captions, or Chinese text overflow.
+6. Render and visually verify.
+   - Render the final PDF and inspect at minimum the title/abstract, a dense equation page, a figure/table-heavy page, the bibliography, and appendices when present.
+   - Check overflow, missing glyphs, broken cross-references, float drift, clipped tables, caption separation, and figures entering the bibliography.
+   - If source and target pagination differ, compare by structural anchors rather than page number alone.
 
-## LaTeX Translation Rules
+7. Deliver with an audit trail.
+   - Report the exact source version and whether the translation was source-aligned or PDF-reconstructed.
+   - Link the translated `.tex`, compiled PDF, and any copied or localized assets.
+   - State the build command, structural-audit result, pages visually checked, remaining warnings, and terminology or figure-text caveats.
 
-- Prefer creating a separate Chinese file such as `main_zh.tex` instead of overwriting the original source.
-- Use a Chinese-capable class or package, for example `ctexart`, `ctexrep`, `ctexbook`, or `ctex` with the original conference class when compatible.
-- Keep original figures and bibliography files unless the user asks to localize figure text or references.
-- Translate captions, section titles, abstract, body text, table headers, algorithm descriptions, and appendix prose.
-- Preserve code blocks, commands, paths, dataset identifiers, model names, metric names, and proper nouns unless a standard Chinese name is clearly established.
-- When the source contains generated or placeholder data, do not invent missing results. Mark uncertainty plainly.
+## Non-negotiable rules
 
-## Quality Bar
+- Never overwrite the only copy of the source.
+- Never fabricate text, citations, equations, figures, tables, or results that are absent from the source.
+- Never drop content because extraction or compilation is difficult; mark unresolved material and continue with traceable placeholders.
+- Never translate identifiers that must remain machine-stable, including `\label`, cite keys, command names, filenames, URLs, dataset splits, and code symbols.
+- Never claim equivalence based only on successful compilation. Compilation, structural audit, semantic review, and visual inspection are separate checks.
+- Preserve uncertainty. Words such as “may,” “approximately,” “under this assumption,” and negative constructions are meaning-bearing.
 
-The final translation should let a Chinese technical reader understand the paper without needing to constantly look back at the English version, while still preserving important English terminology used by the field.
+## Bundled resources
 
-Before final delivery, report:
-
-- Source used: official LaTeX, reconstructed PDF text, or mixed.
-- Deliverables: `.tex`, compiled `.pdf`, and any copied assets.
-- Validation: compile commands, warnings that remain, and pages visually checked.
-- Translation caveats: terms intentionally left in English, incomplete source sections, or figures whose internal English labels were preserved.
+- `scripts/project_inventory.py`: read-only LaTeX project inventory and root-file detection.
+- `scripts/audit_translation.py`: read-only source/translation structural comparison with JSON output support.
+- `references/translation-policy.md`: detailed fidelity and PDF-reconstruction rules.
+- `references/latex-build-and-qa.md`: build, log, and visual-QA procedure.
+- `references/terminology.md`: bilingual terminology policy and consistency rules.
