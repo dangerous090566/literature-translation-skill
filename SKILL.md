@@ -1,6 +1,6 @@
 ---
 name: literature-translation
-description: Translate academic papers, theses, preprints, and technical reports into polished Chinese from LaTeX or PDF while preserving claims, equations, citations, figures, tables, labels, and compilability. Use when Codex must translate or align academic literature, create a Chinese LaTeX/PDF edition, reconstruct a paper from PDF, or audit an existing translation for structural fidelity, terminology consistency, and build quality. Do not use for inventing new claims or substantively rewriting the source.
+description: Translate academic papers, theses, preprints, and technical reports into polished Chinese from LaTeX or PDF while preserving claims, equations, citations, figures, tables, labels, compilability, and requested page layout. Use when Codex must translate or align academic literature, create a Chinese LaTeX/PDF edition, reconstruct a paper from PDF, preserve an original venue format or two-column layout, diagnose PDF viewer reflow, or audit an existing translation for structural fidelity, terminology consistency, and build quality. Do not use for inventing new claims or substantively rewriting the source.
 ---
 
 # Literature Translation
@@ -11,6 +11,7 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
 
 1. Establish scope and source authority.
    - Identify the exact paper version, desired output language, deliverables, and whether the result should be Chinese-only or bilingual.
+   - Treat requests such as “preserve the original format” or “only translate” as page-layout requirements. Inventory paper size, columns, margins, title block, venue boilerplate, float anchors, page numbering, and bibliography flow before editing.
    - Prefer official or user-provided LaTeX. Use PDF as a visual reference when both exist.
    - When only a PDF exists, state that the LaTeX is reconstructed and use the PDF workflow in [references/translation-policy.md](references/translation-policy.md).
    - Do not silently combine different revisions of a paper.
@@ -42,6 +43,8 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
 6. Render and visually verify.
    - Run `python scripts/check_pdf_fonts.py <final.pdf> --json`. Resolve every unembedded CJK font and every CJK Type 0 font lacking `/ToUnicode` before delivery.
    - Render the final PDF with two independent engines when Chinese text is present, preferably Poppler and PyMuPDF. A single renderer can hide missing CMaps through local font fallback.
+   - Read [references/layout-fidelity-and-viewer-compatibility.md](references/layout-fidelity-and-viewer-compatibility.md) whenever the user requires original pagination/columns or reports that the delivered PDF looks reflowed, single-column, stale, or different across readers.
+   - Reopen and render the exact delivered pathname, not only an intermediate build PDF. Use a versioned filename after replacing a previously delivered file so viewer caches cannot silently serve the old artifact.
    - Inspect at minimum the title/abstract, a dense equation page, a figure/table-heavy page, the bibliography, and appendices when present.
    - Check overflow, missing glyphs, broken cross-references, float drift, clipped tables, caption separation, and figures entering the bibliography.
    - If source and target pagination differ, compare by structural anchors rather than page number alone.
@@ -50,6 +53,7 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
    - Report the exact source version and whether the translation was source-aligned or PDF-reconstructed.
    - Link the translated `.tex`, compiled PDF, and any copied or localized assets.
    - State the build command, structural-audit result, pages visually checked, remaining warnings, and terminology or figure-text caveats.
+   - Keep the searchable vector PDF as the primary artifact. If a reader still reflows it and immutable appearance is more important than search/copy, create a separately named fixed-layout compatibility PDF with `python scripts/make_fixed_layout_pdf.py <source.pdf> <fixed.pdf>` and disclose that it intentionally has no text layer.
 
 ## Non-negotiable rules
 
@@ -59,6 +63,8 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
 - Never translate identifiers that must remain machine-stable, including `\label`, cite keys, command names, filenames, URLs, dataset splits, and code symbols.
 - Never claim equivalence based only on successful compilation. Compilation, structural audit, semantic review, and visual inspection are separate checks.
 - Never deliver a Chinese PDF that depends on a reader's system font fallback or external Adobe CMap/language packs. Require embedded CJK fonts, `/ToUnicode`, and successful cross-renderer screenshots.
+- Never claim layout fidelity from LaTeX source or an intermediate render alone. Verify the exact delivered file page-by-page against the designated source.
+- Never silently replace a searchable PDF with a raster fixed-layout PDF. Preserve the editable/searchable edition, use a distinct versioned filename, and report the search/copy/accessibility tradeoff.
 - Preserve uncertainty. Words such as “may,” “approximately,” “under this assumption,” and negative constructions are meaning-bearing.
 
 ## Bundled resources
@@ -66,6 +72,8 @@ Produce a faithful Chinese scholarly artifact, not merely translated prose. Trea
 - `scripts/project_inventory.py`: read-only LaTeX project inventory and root-file detection.
 - `scripts/audit_translation.py`: read-only source/translation structural comparison with JSON output support.
 - `scripts/check_pdf_fonts.py`: verify embedded fonts and Unicode mappings needed for portable Chinese PDF rendering and extraction.
+- `scripts/make_fixed_layout_pdf.py`: create and audit a 300 DPI reader-proof compatibility PDF when viewer reflow or stale-cache behavior cannot be controlled.
 - `references/translation-policy.md`: detailed fidelity and PDF-reconstruction rules.
 - `references/latex-build-and-qa.md`: build, log, and visual-QA procedure.
+- `references/layout-fidelity-and-viewer-compatibility.md`: original-layout acceptance criteria, exact-delivery diagnostics, cache/reflow handling, and fixed-layout fallback policy.
 - `references/terminology.md`: bilingual terminology policy and consistency rules.

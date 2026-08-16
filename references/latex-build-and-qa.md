@@ -71,6 +71,8 @@ The audit detects missing labels, reference targets, citation keys, included fil
 
 ## Visual QA
 
+If the user requires the original layout or reports viewer-dependent reflow, read [layout-fidelity-and-viewer-compatibility.md](layout-fidelity-and-viewer-compatibility.md) and verify the exact delivered pathname with a versioned-output strategy.
+
 Render the final PDF to images when PDF tooling is available. Inspect:
 
 - title, authors, abstract, and keywords;
@@ -80,6 +82,8 @@ Render the final PDF to images when PDF tooling is available. Inspect:
 - the last body page, bibliography, and appendices.
 
 Compare against the source by section, figure/table number, equation label, and caption—not only by page number. Chinese changes line length and pagination.
+
+When “preserve original format” is explicit, also compare page size, column count, title/author geometry, venue boilerplate, page-number range, full-width float pages, and bibliography start/end. Treat a single-column reflow or stale same-name preview as a failed delivery even if the intermediate PDF was correct.
 
 Look for clipped glyphs, font fallback, punctuation at line starts, excessive whitespace, float drift, split captions, tables exceeding columns, figures entering references, orphan headings, and bibliography corruption.
 
