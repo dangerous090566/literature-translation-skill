@@ -1,4 +1,4 @@
 interface:
   display_name: "文献翻译与校验"
-  short_description: "忠实翻译学术论文并校验 LaTeX 结构与编译质量"
-  default_prompt: "Use $literature-translation to translate this academic paper into polished Chinese, preserve its LaTeX structure, audit fidelity, and verify the compiled PDF."
+  short_description: "忠实翻译论文并校验原版式、字体兼容性与跨阅读器显示"
+  default_prompt: "Use $literature-translation to translate this academic paper into polished Chinese, preserve its original page layout and LaTeX structure, audit fidelity, verify embedded Unicode CJK fonts, and inspect the exact delivered PDF with independent renderers."
